@@ -1,21 +1,21 @@
 import React, { Component } from 'react';
 import Searchbar from './components/Searchbar/Searchbar'
+import ImageGallery from './components/Searchbar/ImageGallery'
+import Button from './components/Searchbar/Button'
+import Modal from './components/Searchbar/Modal'
+import Spinner from './components/Searchbar/Loader'
 import hitsApi from './services/hits-api'
 import './styles.css'
-
-// // const url = `https://pixabay.com/api/?image_type=photo&orientation=horizontal&q=${this.searchQuery}&page=${this.page}&per_page=12&key=${apiKey}`;
-// axios.defaults.headers.common['Authorization'] =
-//   '20282142-3926486b0d0a2f754919f4d11';
 
 class App extends Component {
   state = {
     hits: [],
+    largeImageURL: '',
     currentPage: 1,
     searchQuery: '',
+    showModal: false,
     isLoading: false,
-    error: null,
-    largeImageURL: ''
-
+    error: null
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -31,7 +31,6 @@ class App extends Component {
       hits: [],
       error: null
     })
-
   }
 
   fetchHits = () => {
@@ -48,40 +47,46 @@ class App extends Component {
           hits: [...prevState.hits, ...hits],
           currentPage: prevState.currentPage + 1
         }))
-      }).catch(error => this.setState({ error }))
+      })
+      .catch(error => this.setState({ error }))
       .finally(() => this.setState({ isLoading: false }))
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    })
+  }
 
+  toggleModal = (largeImageURL) => {
+    // console.log(largeImageURL)
+    this.setState(state => ({
+      showModal: !state.showModal,
+      largeImageURL
+    }))
   }
 
   render() {
-    const { hits, isLoading, error } = this.state
+    const { hits, isLoading, error, showModal, largeImageURL } = this.state
     const shouldRenderLoadMoreButton = hits.length > 0 && !isLoading
 
     return (
 
-      <>
+      <div className="App">
+
         {error && <h1>Ooooops....ERROR</h1>}
+
         <Searchbar onSubmit={this.onChangeQuery} />
 
-        <ul className="ImageGallery">
-          {hits.map(({ id, webformatURL, tags }) => (
-            <li key={id} className="ImageGalleryItem">
-              <img src={webformatURL} alt={tags} width="450" className="ImageGalleryItem-image"></img>
-            </li>
-          ))}
-        </ul>
+        <ImageGallery showModal={this.toggleModal} hits={hits} />
 
-        {isLoading && <h1>Loading...</h1>}
+        {/* <button type="button" onClick={this.toggleModal}>Open modal</button> */}
 
-        {shouldRenderLoadMoreButton && (
-          <button
-            type="button"
-            onClick={this.fetchHits}
-          >Load more</button>
-        )}
+        {showModal && <Modal onClose={this.toggleModal} largeImageURL={largeImageURL} />}
 
+        { isLoading && <Spinner />}
 
-      </>
+        {shouldRenderLoadMoreButton && <Button fetchHits={this.fetchHits}></Button>}
+
+      </div>
 
     )
   }
