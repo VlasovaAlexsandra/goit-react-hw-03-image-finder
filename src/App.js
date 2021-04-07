@@ -40,7 +40,8 @@ class App extends Component {
 
     this.setState({ isLoading: true })
 
-    hitsApi.fetchHits(options)
+    hitsApi
+      .fetchHits(options)
       .then(hits => {
         // console.log(response.data.hits)
         this.setState(prevState => ({
@@ -49,11 +50,13 @@ class App extends Component {
         }))
       })
       .catch(error => this.setState({ error }))
-      .finally(() => this.setState({ isLoading: false }))
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth',
-    })
+      .finally(() => (this.setState({ isLoading: false }),
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth',
+        }))
+      )
+
   }
 
   toggleModal = (largeImageURL) => {
